@@ -51,6 +51,6 @@ RUN rm libpsortb-1.0.tar.gz bio-tools-psort-all.3.0.4.tar.gz ncbi-blast-2.6.0+-x
 
 RUN rm -r /usr/local/src/bio-tools-psort-all/psortm_standalone
 
-ENTRYPOINT ["/tmp"]
-CMD []
+#ENTRYPOINT ["/usr/local/psortb/bin"]
+#CMD ["sleep infinity"]
 
