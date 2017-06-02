@@ -1,35 +1,73 @@
 # Perl script wrapper to call psortm inside the docker container.
 # Run this script using 'perl psortm [OPTIONS]'
 
+use strict;
 use Getopt::Long;
 
-docker run -v localdirectory:/tmp <org>/<container> -n -d > /tmp < stdin_file
+# docker run -v localdirectory:/tmp <org>/<container> -n -d > /tmp < stdin_file
 
 sub main {
-    my ($seqfile, $taxfile, $help);
+    my ($seqfile, $taxfile, $help, $outdir);
+    my ($format, $verbose, $cutoff, $exact, $version, $output, $divergent);
 
-    GetOptions('seq|s=s'  => \$seqfile,  
-               'tax|t=s'  => \$taxfile,
-               'help|h'   => \$help,
+    my @args = @ARGV;
+    @args = remove_unneeded_args(\@args);
+    my $my_args = join(" ".@args);
+
+    GetOptions('seq|i=s'     => \$seqfile,  
+               'tax|t=s'     => \$taxfile,
+               'help|h'      => \$help,     'outdir|r=s'    => \$outdir,
                'format|f=s'  => \$format,   'divergent|d=f' => \$divergent,
                'verbose|v'   => \$verbose, 
                'cutoff|c=f'  => \$cutoff,   'output|o=s'    => \$output,
-               'taxfile|t=s' => \$taxfile,  'seq|s=s'       => \$seqfile,
                'exact|e'     => \$exact,    'version'       => \$version);
 
-    usage() && exit(0) if($help);
+    check_mandatory_field_values($seqfile, $taxfile, $outdir);
 
+    my $cmd = "sudo docker run --rm -v $outdir:/tmp -ti psortm-commandline-docker:latest $my_args -I";
+   print "cmd = $cmd\n";
+    system($cmd);
+}
+
+sub check_mandatory_field_values {
+
+    my $ctr = 0;
+    my @input_type = ("input sequence file (--seq)", "taxonomic classification file (--taxfile)", "results path (--outdir)");
+    foreach my $file_or_dir (@_) {
+        if ((!$file_or_dir) || (! -e $file_or_dir)) {
+            print "No such file: $file_or_dir\nPlease enter a valid location for your $input_type[$ctr]\n";
+            usage();
+            exit(0);
+        }
+        $ctr++;
+    }
+}
+
+sub remove_unneeded_args {
+    my $args = shift;
+
+    #remove -d (output dir)
+    my @modified_arg_list;
+    for (my $i=0; $i<scalar(@$args); $i++) {
+        if ($$args[$i] eq '-d') {
+            $i++; # skip current and next element
+        }
+        else {
+            push(@modified_arg_list, $$args[$i]);
+        }
+    }
 }
 
 sub usage {
     $0 =~ /^.*\/(.+)/;
     print("Usage: $1 -s <sequence file> -t <taxonomic classification file> [OPTIONS]\n");
     print("Example command: psortm -s myseqs.fasta -t mytax.csv\n");
-    print("  --seqfile, -s     Input sequence file path (required)\n");
+    print("  --seqfile, -i     Input sequence file path (required)\n");
     print("  --taxfile, -t     A tab- or comma-delimited file of sequence ids with\n");
     print("                    their predicted taxonomic classifications (taxonomy ID\n");
     print("                    or taxonomic name). This can be generated using a program\n");
     print("                    such as MEGAN6 (required)\n");
+    print("  --outdir, -r      Path of where to save results files.\n");
     print("  --cutoff, -c      Sets a cutoff value for reported results\n");
     print("  --divergent, -d   Sets a cutoff value for the multiple\n");
     print("                    localization flag\n");
