@@ -1,12 +1,16 @@
+#!/usr/bin/perl
 # Perl script wrapper to call psortm inside the docker container.
 # Run this script using 'perl psortm [OPTIONS]'
 
 use strict;
 use Getopt::Long;
+use File::Basename;
+use Cwd 'abs_path';
 
-# docker run -v localdirectory:/tmp <org>/<container> -n -d > /tmp < stdin_file
+our $cwd = abs_path 
 
 sub main {
+
     my ($seqfile, $taxfile, $help, $outdir);
     my ($format, $verbose, $cutoff, $exact, $version, $output, $divergent);
 
@@ -22,10 +26,29 @@ sub main {
                'cutoff|c=f'  => \$cutoff,   'output|o=s'    => \$output,
                'exact|e'     => \$exact,    'version'       => \$version);
 
+    $seqfile = ans_path($seqfile);
+    $taxfile = abs_path($taxfile);
+
+    print "seqfile = $seqfile\n";
+    print "taxfile = $taxfile\n";
+
     check_mandatory_field_values($seqfile, $taxfile, $outdir);
 
-    my $cmd = "sudo docker run --rm -v $outdir:/tmp -ti psortm-commandline-docker:latest $my_args -I";
-   print "cmd = $cmd\n";
+    $outdir =~ s/\/$//; # remove trailing slash if present
+
+    my $symlink_seqfile_cmd = "ln -s $seqfile $outdir/";
+    system($symlink_seqfile_cmd);
+    die "Could not create symlink: $symlink_seqfile_cmd: $@\n" if $@;
+
+    my $symlink_taxfile_cmd = "ln -s $taxfile $outdir/";
+    system($symlink_taxfile_cmd);
+    die "Could not create symlink: $symlink_taxfile_cmd: $@\n" if $@;
+
+    my $seqfilename = basename($seqfile);
+    my $taxfilename = basename($taxfile);
+
+    my $cmd = "sudo docker run --rm -v $outdir:/tmp -e SEQFILE='/tmp/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -ti psortm_commandline_docker:latest psortm $my_args";
+    print "cmd = $cmd\n";
     system($cmd);
 }
 
@@ -33,12 +56,27 @@ sub check_mandatory_field_values {
 
     my $ctr = 0;
     my @input_type = ("input sequence file (--seq)", "taxonomic classification file (--taxfile)", "results path (--outdir)");
+    my $error = 0;
     foreach my $file_or_dir (@_) {
-        if ((!$file_or_dir) || (! -e $file_or_dir)) {
-            print "No such file: $file_or_dir\nPlease enter a valid location for your $input_type[$ctr]\n";
+        if (!$file_or_dir) {
+            print "hello1\n";
+            $error = 1;
+        } 
+        elsif ((-f $file_or_dir) && (! -e $file_or_dir)) {
+            print "hello2\n";
+            $error = 1;
+        }
+        elsif (! -d $file_or_dir) {
+            print "hello3\n";
+            $error = 1;
+        }
+
+        if ($error) {
+            print "No such file or directory: $file_or_dir\nPlease enter a valid location for your $input_type[$ctr]\n";
             usage();
             exit(0);
         }
+        
         $ctr++;
     }
 }
