@@ -20,6 +20,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -yq install openssh
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /tmp/results && chmod 777 /tmp/results
+
 WORKDIR /usr/local/bin
 
 RUN mkdir pftools && cd pftools && wget ftp://ftp.lausanne.isb-sib.ch/pub/software/unix/pftools/pft2.3/executables/linux_x86_elf/static/pft2.3_static.tar.gz && tar xvf pft2.3_static.tar.gz && chmod 755 * && ln -s /usr/local/bin/pftools/pfscan /usr/local/bin/pfscan
@@ -42,7 +44,7 @@ RUN wget http://www.psort.org/download/docker/psortm_standalone.tar.gz && tar xv
 
 RUN wget http://www.psort.org/download/docker/psortb.defaults && perl Makefile.PL && make && make install 
 
-RUN mv /usr/local/psortb/bin /usr/local/psortb/bin_orig && mv psortm_standalone/bin /usr/local/psortb/
+RUN mv /usr/local/psortb/bin /usr/local/psortb/bin_orig && mv psortm_standalone/bin /usr/local/psortb/ && chmod +x /usr/local/psortb/bin
 
 #cleanup
 WORKDIR /usr/local/src
@@ -51,6 +53,6 @@ RUN rm libpsortb-1.0.tar.gz bio-tools-psort-all.3.0.4.tar.gz ncbi-blast-2.6.0+-x
 
 RUN rm -r /usr/local/src/bio-tools-psort-all/psortm_standalone
 
-#ENTRYPOINT ["/usr/local/psortb/bin"]
-#CMD ["sleep infinity"]
+ENTRYPOINT ["/usr/local/psortb/bin/psort"]
+CMD []
 
