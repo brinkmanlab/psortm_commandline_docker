@@ -7,16 +7,13 @@ use Getopt::Long;
 use File::Basename;
 use Cwd 'abs_path';
 
-our $cwd = abs_path 
-
 sub main {
 
     my ($seqfile, $taxfile, $help, $outdir);
     my ($format, $verbose, $cutoff, $exact, $version, $output, $divergent);
 
     my @args = @ARGV;
-    @args = remove_unneeded_args(\@args);
-    my $my_args = join(" ".@args);
+    my $extra_args = remove_unneeded_args(\@args);
 
     GetOptions('seq|i=s'     => \$seqfile,  
                'tax|t=s'     => \$taxfile,
@@ -26,53 +23,75 @@ sub main {
                'cutoff|c=f'  => \$cutoff,   'output|o=s'    => \$output,
                'exact|e'     => \$exact,    'version'       => \$version);
 
+    die usage() if($help);
+
     $seqfile = abs_path($seqfile);
     $taxfile = abs_path($taxfile);
-
-    print "seqfile = $seqfile\n";
-    print "taxfile = $taxfile\n";
+    $outdir  = abs_path($outdir); 
 
     check_mandatory_field_values($seqfile, $taxfile, $outdir);
 
     $outdir =~ s/\/$//; # remove trailing slash if present
 
-    my $symlink_seqfile_cmd = "ln -s $seqfile $outdir/";
-    system($symlink_seqfile_cmd);
-    die "Could not create symlink: $symlink_seqfile_cmd: $@\n" if $@;
-
-    my $symlink_taxfile_cmd = "ln -s $taxfile $outdir/";
-    system($symlink_taxfile_cmd);
-    die "Could not create symlink: $symlink_taxfile_cmd: $@\n" if $@;
-
     my $seqfilename = basename($seqfile);
     my $taxfilename = basename($taxfile);
 
-    my $cmd = "sudo docker run --rm -v $outdir:/tmp -e SEQFILE='/tmp/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $my_args";
+    my $new_seqfilepath = "$outdir/".$seqfilename;
+    my $new_taxfilepath = "$outdir/".$taxfilename;
+
+    # copy file to mount directory (if it doesn't already exist)
+    my $seqfile_copied = make_file_copy($seqfile, $new_seqfilepath);
+    my $taxfile_copied = make_file_copy($taxfile, $new_taxfilepath);
+
+
+    my $cmd = "sudo docker run --rm -v $outdir:/tmp -e SEQFILE='/tmp/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $extra_args";
     #print "cmd = $cmd\n";
     system($cmd);
+
+    # remove copied files (if they were created)
+    delete_file($new_seqfilepath, $seqfile_copied);
+    delete_file($new_taxfilepath, $taxfile_copied);
+}
+
+sub make_file_copy {
+    my ($orig_file, $new_file) = @_;
+
+    my $copied_flag = 0;
+    if (! -e $new_file) {
+        my $cmd = "cp $orig_file $new_file";
+        system($cmd);
+        die "Could not copy file: $cmd: $@\n" if $@;
+        $copied_flag = 1;
+    }
+    return($copied_flag);
+}
+
+sub delete_file {
+    my ($file, $delete_flag) = @_;
+
+    if ($delete_flag) {
+        my $cmd = "rm $file";
+        system($cmd);
+        die "Could not delete file: $cmd: $@\n" if $@;
+    }
 }
 
 sub check_mandatory_field_values {
 
     my $ctr = 0;
-    my @input_type = ("input sequence file (--seq)", "taxonomic classification file (--taxfile)", "results path (--outdir)");
-    my $error = 0;
+    my @input_type = ('input sequence file (-i, --seq)', 'taxonomic classification file (-t, --taxfile)', 'results path (-r, --outdir)');
     foreach my $file_or_dir (@_) {
+        my $error = 0;
+
         if (!$file_or_dir) {
-            print "hello1\n";
             $error = 1;
         } 
-        elsif ((-f $file_or_dir) && (! -e $file_or_dir)) {
-            print "hello2\n";
-            $error = 1;
-        }
-        elsif (! -d $file_or_dir) {
-            print "hello3\n";
+        elsif ((! -d $file_or_dir) && (! -f $file_or_dir)) {
             $error = 1;
         }
 
         if ($error) {
-            print "No such file or directory: $file_or_dir\nPlease enter a valid location for your $input_type[$ctr]\n";
+            print "No such file or directory: $file_or_dir\nPlease enter a valid location for your $input_type[$ctr]\n\n\n";
             usage();
             exit(0);
         }
@@ -84,24 +103,27 @@ sub check_mandatory_field_values {
 sub remove_unneeded_args {
     my $args = shift;
 
-    #remove -d (output dir)
+    #remove -r (output dir), -i (seq), -t (tax)
     my @modified_arg_list;
     for (my $i=0; $i<scalar(@$args); $i++) {
-        if ($$args[$i] eq '-d') {
+        if (($$args[$i] eq '-r') || ($$args[$i] eq '--outdir') ||
+            ($$args[$i] eq '-i') || ($$args[$i] eq '--seq') ||
+            ($$args[$i] eq '-t') || ($$args[$i] eq '--tax')) {
             $i++; # skip current and next element
         }
         else {
             push(@modified_arg_list, $$args[$i]);
         }
     }
+    return( join(" ", @modified_arg_list) );
 }
 
 sub usage {
     $0 =~ /^.*\/(.+)/;
     print("Usage: $1 -s <sequence file> -t <taxonomic classification file> [OPTIONS]\n");
     print("Example command: psortm -s myseqs.fasta -t mytax.csv\n");
-    print("  --seqfile, -i     Input sequence file path (required)\n");
-    print("  --taxfile, -t     A tab- or comma-delimited file of sequence ids with\n");
+    print("  --seq, -i         Input sequence file path (required)\n");
+    print("  --tax, -t         A tab- or comma-delimited file of sequence ids with\n");
     print("                    their predicted taxonomic classifications (taxonomy ID\n");
     print("                    or taxonomic name). This can be generated using a program\n");
     print("                    such as MEGAN6 (required)\n");
