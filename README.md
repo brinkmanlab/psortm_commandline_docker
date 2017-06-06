@@ -26,7 +26,7 @@ It also contains a wrapper script (psortm) to run psortm inside the container.
 Warning: Users of this psortm app must have admin rights to run docker commands. Either that 
 or an administrator must give you access to run "docker run" commands.
 
-## Pre-built Docker image
+### Pre-built Docker image
 A pre-built image created by the Dockerfile in this repository can be 
 found at https://hub.docker.com/r/brinkmanlab/psortm_commandline/
 
