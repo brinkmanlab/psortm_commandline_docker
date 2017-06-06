@@ -26,7 +26,7 @@ sub main {
                'cutoff|c=f'  => \$cutoff,   'output|o=s'    => \$output,
                'exact|e'     => \$exact,    'version'       => \$version);
 
-    $seqfile = ans_path($seqfile);
+    $seqfile = abs_path($seqfile);
     $taxfile = abs_path($taxfile);
 
     print "seqfile = $seqfile\n";
