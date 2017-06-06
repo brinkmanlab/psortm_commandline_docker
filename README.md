@@ -22,7 +22,7 @@ This repository hosts a Docker buildfile (Dockerfile) for the complex environmen
 It also contains a wrapper script (psortm) to run psortm inside the container.
 
 Warning: Users of this psortm app must have admin rights to run docker commands. Either that 
-or an administator must give you access to run "docker run" commands.
+or an administrator must give you access to run "docker run" commands.
 
 ## Pre-built Docker image
 A pre-built image created by the Dockerfile in this repository can be 
@@ -45,7 +45,7 @@ Once the Docker image has been installed, run PSORTm like this:
 ```
 
 Warning: Users of this psortm app must have admin rights to run docker commands. Either that 
-or an administator must give you access to run "docker run" commands.
+or an administrator must give you access to run "docker run" commands.
 
 ```
 % ./psortm -i <FASTA format sequence file> \
