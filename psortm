@@ -47,8 +47,8 @@ sub main {
     my $seqfilename = basename($seqfile);
     my $taxfilename = basename($taxfile);
 
-    my $cmd = "sudo docker run --rm -v $outdir:/tmp -e SEQFILE='/tmp/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -ti psortm_commandline_docker:latest psortm $my_args";
-    print "cmd = $cmd\n";
+    my $cmd = "sudo docker run --rm -v $outdir:/tmp -e SEQFILE='/tmp/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $my_args";
+    #print "cmd = $cmd\n";
     system($cmd);
 }
 
