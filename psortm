@@ -44,7 +44,7 @@ sub main {
     my $taxfile_copied = make_file_copy($taxfile, $new_taxfilepath);
 
 
-    my $cmd = "sudo docker run --rm -v $outdir:/tmp -e SEQFILE='/tmp/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $extra_args";
+    my $cmd = "sudo docker run --rm -v $outdir:/tmp/results -e SEQFILE='/tmp/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $extra_args";
     #print "cmd = $cmd\n";
     system($cmd);
 
