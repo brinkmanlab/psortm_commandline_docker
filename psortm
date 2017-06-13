@@ -23,7 +23,7 @@ sub main {
                'cutoff|c=f'  => \$cutoff,   'output|o=s'    => \$output,
                'exact|e'     => \$exact,    'version'       => \$version);
 
-    usage() && exit(0) if($help);
+    usage() if($help);
 
     $seqfile = abs_path($seqfile);
     $taxfile = abs_path($taxfile);
@@ -103,13 +103,57 @@ sub check_mandatory_field_values {
 sub remove_unneeded_args {
     my $args = shift;
 
+    # check -i, -t and -r aren't missing from the input options
+    my %h = map { $_ => 1 } @$args;
+    if ((! defined($h{"-r"})) && (! defined($h{"--outdir"}))) {
+        print "Please enter a directory path where your results will be saved to (-r)\n";
+        usage();
+    }
+    elsif ((! defined($h{"-i"})) && (! defined($h{"--seq"}))) {
+        print "Please enter a FASTA-format protein sequence file (-i)\n";
+        usage();
+    }
+    elsif ((! defined($h{"-t"})) && (! defined($h{"--tax"}))) {
+        print "Please enter a taxonomic classification file (-t)\n";
+        usage();
+    }
+
+    my @modified_arg_list;
+    my $check_next_element = 0;
+    my $prev_element = "";
+
     #remove -r (output dir), -i (seq), -t (tax)
     my @modified_arg_list;
     for (my $i=0; $i<scalar(@$args); $i++) {
-        if (($$args[$i] eq '-r') || ($$args[$i] eq '--outdir') ||
+
+        if ($check_next_element) {
+            # check input directory and input file exist
+            if ((($prev_element eq "-r") || ($prev_element eq "--outdir")) && (! -d $$args[$i])) {
+                print "No such directory: $$args[$i] (please enter a local directory to store the results, -r)\n";
+                usage();
+            }
+            elsif ((($prev_element eq "-i") || ($prev_element eq "--seq")) && (! -e $$args[$i])) {
+                print "No such file: $$args[$i] (please enter a FASTA-format protein sequence file, -i)\n";
+                usage();
+            }
+            elsif ((($prev_element eq "-t") || ($prev_element eq "--tax")) && (! -e $$args[$i])) {
+                print "No such file: $$args[$i] (please enter a taxonomic classification file, -t)\n";
+                usage();
+            }
+            $check_next_element = 0;
+            $prev_element       = "";
+        }
+        elsif (($$args[$i] eq '-r') || ($$args[$i] eq '--outdir') ||
             ($$args[$i] eq '-i') || ($$args[$i] eq '--seq') ||
             ($$args[$i] eq '-t') || ($$args[$i] eq '--tax')) {
-            $i++; # skip current and next element
+
+            $check_next_element = 1; # skip current and flag next element
+            $prev_element = $$args[$i];
+
+            if ($$args[$i] eq $$args[-1]) {
+                print "Option $$args[$i] requires a path ($$args[$i] <path>)\n";
+                usage();
+            }
         }
         else {
             push(@modified_arg_list, $$args[$i]);
@@ -139,6 +183,8 @@ sub usage {
     print("  --verbose, -v     Be verbose while running\n");
     print("  --version         Print the version of PSortb\n");
     print("  --help, -h        Displays usage information\n\n");
+
+    exit(0);
 }
 
 main();
