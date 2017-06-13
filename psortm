@@ -7,6 +7,8 @@ use Getopt::Long;
 use File::Basename;
 use Cwd 'abs_path';
 
+our $container_results_path = '/tmp/results';
+
 sub main {
 
     my ($seqfile, $taxfile, $help, $outdir);
@@ -44,7 +46,7 @@ sub main {
     my $taxfile_copied = make_file_copy($taxfile, $new_taxfilepath);
 
 
-    my $cmd = "sudo docker run --rm -v $outdir:/tmp/results -e SEQFILE='/tmp/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $extra_args";
+    my $cmd = "sudo docker run --rm -v $outdir:$container_results_path -e SEQFILE='$container_results_path/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $extra_args";
     #print "cmd = $cmd\n";
     system($cmd);
 
