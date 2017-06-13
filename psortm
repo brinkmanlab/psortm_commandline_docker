@@ -23,7 +23,7 @@ sub main {
                'cutoff|c=f'  => \$cutoff,   'output|o=s'    => \$output,
                'exact|e'     => \$exact,    'version'       => \$version);
 
-    die usage() if($help);
+    usage() && exit(0) if($help);
 
     $seqfile = abs_path($seqfile);
     $taxfile = abs_path($taxfile);
@@ -120,8 +120,8 @@ sub remove_unneeded_args {
 
 sub usage {
     $0 =~ /^.*\/(.+)/;
-    print("Usage: $1 -s <sequence file> -t <taxonomic classification file> [OPTIONS]\n");
-    print("Example command: psortm -s myseqs.fasta -t mytax.csv\n");
+    print("Usage: $1 -s <sequence file> -t <taxonomic classification file> -r <local results directory> [OPTIONS]\n");
+    print("Example command: psortm -s myseqs.fasta -t mytax.csv -r /tmp/psortm_results\n");
     print("  --seq, -i         Input sequence file path (required)\n");
     print("  --tax, -t         A tab- or comma-delimited file of sequence ids with\n");
     print("                    their predicted taxonomic classifications (taxonomy ID\n");
@@ -138,7 +138,7 @@ sub usage {
     print("                    'terse'  Value can be one of: terse or long\n");
     print("  --verbose, -v     Be verbose while running\n");
     print("  --version         Print the version of PSortb\n");
-    print("  --help, -h        Displays usage information\n");
+    print("  --help, -h        Displays usage information\n\n");
 }
 
 main();
