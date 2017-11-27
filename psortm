@@ -46,7 +46,7 @@ sub main {
     my $taxfile_copied = make_file_copy($taxfile, $new_taxfilepath);
 
 
-    my $cmd = "sudo docker run --rm -v $outdir:$container_results_path -e SEQFILE='$container_results_path/$seqfilename' -e TAXFILE='/tmp/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $extra_args";
+    my $cmd = "sudo docker run --rm -v $outdir:$container_results_path -e SEQFILE='$container_results_path/$seqfilename' -e TAXFILE='$container_results_path/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $extra_args";
     #print "cmd = $cmd\n";
     system($cmd);
 
@@ -61,6 +61,7 @@ sub make_file_copy {
     my $copied_flag = 0;
     if (! -e $new_file) {
         my $cmd = "cp $orig_file $new_file";
+        #print "cmd = $cmd\n";
         system($cmd);
         die "Could not copy file: $cmd: $@\n" if $@;
         $copied_flag = 1;
@@ -166,8 +167,8 @@ sub remove_unneeded_args {
 
 sub usage {
     $0 =~ /^.*\/(.+)/;
-    print("Usage: $1 -s <sequence file> -t <taxonomic classification file> -r <local results directory> [OPTIONS]\n");
-    print("Example command: psortm -s myseqs.fasta -t mytax.csv -r /tmp/psortm_results\n");
+    print("Usage: $1 -i <sequence file> -t <taxonomic classification file> -r <local results directory> [OPTIONS]\n");
+    print("Example command: psortm -i myseqs.fasta -t mytax.csv -r /tmp/psortm_results\n");
     print("  --seq, -i         Input sequence file path (required)\n");
     print("  --tax, -t         A tab- or comma-delimited file of sequence ids with\n");
     print("                    their predicted taxonomic classifications (taxonomy ID\n");
