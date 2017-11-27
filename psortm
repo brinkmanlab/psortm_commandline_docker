@@ -8,6 +8,9 @@ use File::Basename;
 use Cwd 'abs_path';
 
 our $container_results_path = '/tmp/results';
+my  $docker_repo_name  = 'brinkmanlab/psortm_commandline'; 
+my  $docker_latest_tag = '1.0.1';
+our $docker_repo       = "$docker_repo_name:$docker_latest_tag";
 
 sub main {
 
@@ -45,8 +48,7 @@ sub main {
     my $seqfile_copied = make_file_copy($seqfile, $new_seqfilepath);
     my $taxfile_copied = make_file_copy($taxfile, $new_taxfilepath);
 
-
-    my $cmd = "sudo docker run --rm -v $outdir:$container_results_path -e SEQFILE='$container_results_path/$seqfilename' -e TAXFILE='$container_results_path/$taxfilename' -e MOUNT='$outdir' -ti psortm_commandline_docker:latest psortm $extra_args";
+    my $cmd = "sudo docker run --rm -v $outdir:$container_results_path -e SEQFILE='$container_results_path/$seqfilename' -e TAXFILE='$container_results_path/$taxfilename' -e MOUNT='$outdir' -ti $docker_repo psortm $extra_args";
     #print "cmd = $cmd\n";
     system($cmd);
 
