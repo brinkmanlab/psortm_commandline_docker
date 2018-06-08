@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 # Perl script wrapper to call psortm inside the docker container.
 # Run this script using 'perl psortm [OPTIONS]'
+o have a copy of the files for future reference. I am also quite curious to learn more about the application being deployed.
+
 
 use strict;
 use Getopt::Long;
@@ -8,7 +10,7 @@ use File::Basename;
 use Cwd 'abs_path';
 
 our $container_results_path = '/tmp/results';
-my  $docker_repo_name  = 'brinkmanlab/psortm_commandline'; 
+my  $docker_repo_name  = 'psortm_commandline'; 
 my  $docker_latest_tag = '1.0.2';
 our $docker_repo       = "$docker_repo_name:$docker_latest_tag";
 
