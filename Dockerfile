@@ -4,7 +4,6 @@ MAINTAINER Gemma Hoad <ghoad@sfu.ca>
 # Install packages then remove cache package list information
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -yq install openssh-client \
     make \
-    curl \
     wget \
     apt-utils \
     build-essential \
@@ -16,9 +15,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -yq install openssh
     libf2c2 \
     libxmlrpc-lite-perl \
     libextutils-makemaker-cpanfile-perl \
-    gcc 
+    gcc \
+    cpanminus 
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN cpanm IO::String
 
 RUN mkdir -p /tmp/results && chmod 777 /tmp/results
 
@@ -36,7 +38,7 @@ RUN wget http://www.psort.org/download/libpsortb-1.0.tar.gz && tar zxvf libpsort
 
 RUN mkdir -p /usr/local/src/blastdb
 
-RUN wget http://www.psort.org/download/bio-tools-psort-all.3.0.5.tar.gz && tar zxvf bio-tools-psort-all.3.0.5.tar.gz
+RUN wget http://www.psort.org/download/bio-tools-psort-all.3.0.6.tar.gz && tar zxvf bio-tools-psort-all.3.0.6.tar.gz
 
 WORKDIR /usr/local/src/bio-tools-psort-all
 
@@ -49,7 +51,7 @@ RUN mv /usr/local/psortb/bin /usr/local/psortb/bin_orig && mv psortm_standalone/
 #cleanup
 WORKDIR /usr/local/src
 
-RUN rm libpsortb-1.0.tar.gz bio-tools-psort-all.3.0.5.tar.gz ncbi-blast-2.6.0+-x64-linux.tar.gz /usr/local/bin/pftools/pft2.3_static.tar.gz bio-tools-psort-all/psortm_standalone.tar.gz 
+RUN rm libpsortb-1.0.tar.gz bio-tools-psort-all.3.0.6.tar.gz ncbi-blast-2.6.0+-x64-linux.tar.gz /usr/local/bin/pftools/pft2.3_static.tar.gz bio-tools-psort-all/psortm_standalone.tar.gz 
 
 RUN rm -r /usr/local/src/bio-tools-psort-all/psortm_standalone
 
