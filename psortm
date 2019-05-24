@@ -1,8 +1,6 @@
 #!/usr/bin/perl
 # Perl script wrapper to call psortm inside the docker container.
 # Run this script using 'perl psortm [OPTIONS]'
-o have a copy of the files for future reference. I am also quite curious to learn more about the application being deployed.
-
 
 use strict;
 use Getopt::Long;
