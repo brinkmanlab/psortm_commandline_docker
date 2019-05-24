@@ -8,7 +8,7 @@ use File::Basename;
 use Cwd 'abs_path';
 
 our $container_results_path = '/tmp/results';
-my  $docker_repo_name  = 'psortm_commandline'; 
+my  $docker_repo_name  = 'brinkmanlab/psortm_commandline'; 
 my  $docker_latest_tag = '1.0.2';
 our $docker_repo       = "$docker_repo_name:$docker_latest_tag";
 
